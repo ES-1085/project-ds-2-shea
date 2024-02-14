@@ -1,6 +1,6 @@
 ---
-title: "Project proposal"
-author: "Team name"
+title: "Web Scrapping for Palestine"
+author: "Shea Turner-Matthews"
 output: github_document
 ---
 
@@ -11,14 +11,17 @@ library(broom)
 
 ## 1. Introduction
 
-
+News outlets across the USA as well as many other countries of the world are portraying the situation in Palestine from a biased lense that tends to invalidate Palestinian perspectives and glorify those of Israel and the Israeli military. In this project I will attempt to showcase these biases be analyzing the language used in news articles.
 
 ## 2. Data
 
+I will be web scraping data off of Google news, Google search, and other news platforms. I will be scraping the article titles, names of the journal, and dates of release. 
 
 ## 3. Ethics review
 
+I am not 100% percent sure whether or not scrapping data off of Google search is fully legal. However, all of this information is publically accessible, and I do not intend to do anything formal with the data. Rather, this work will only be for the final project for this class and my own curiosity. Therefore, I do not see anything ethically wrong with doing this project.
+
 ## 4. Data analysis plan
 
-
+I will compare the most common words used across articles and frequencies of words used by different journals and news outlets. I also wish to look at relationships between words. (ex. which words are most commonly proceed the word "Palestine"). In addition to comparing words used by different journals, I would also like to look at how the overall use of language changes over time. I will do this by looking at a specific set of words and plotting there average use over time. 
 
