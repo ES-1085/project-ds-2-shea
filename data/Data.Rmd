@@ -1,0 +1,63 @@
+```{r load-packages, message = FALSE}
+library(tidyverse)
+library(broom)
+library(readxl)
+```
+
+```{r read_in_data}
+Palestine_news_articles <- read_xlsx("../data/Palestine_news_articles.xlsx")
+Israel_news_articles <- read_xlsx("../data/israel_news_articles.xlsx")
+Gaza_news_articles <- read_xlsx("../data/gaza_news_articles.xlsx")
+```
+
+
+```{r}
+tidy_pna <- Palestine_news_articles %>% 
+  select("...2", "...3", "...4", "...5") %>% 
+  rename("title" = "...2",
+         "journal" = "...3",
+         "date" = "...4",
+         "description" = "...5") %>% 
+  filter(!is.na(title)) %>% 
+  filter(title != "Title",
+         journal != "Journal",
+         date != "Date",
+         description != "Description") %>% 
+  mutate(keyword = "palestine")
+```
+
+```{r}
+tidy_ina <- Israel_news_articles %>% 
+  select("...2", "...3", "...4", "...5") %>% 
+  rename("title" = "...2",
+         "journal" = "...3",
+         "date" = "...4",
+         "description" = "...5") %>% 
+  filter(!is.na(title)) %>% 
+  filter(title != "Title",
+         journal != "Journal",
+         date != "Date",
+         description != "Description") %>% 
+  mutate(keyword = "israel")
+```
+
+```{r}
+tidy_gna <- Gaza_news_articles %>% 
+  select("...2", "...3", "...4", "...5") %>% 
+  rename("title" = "...2",
+         "journal" = "...3",
+         "date" = "...4",
+         "description" = "...5") %>% 
+  filter(!is.na(title)) %>% 
+  filter(title != "Title",
+         journal != "Journal",
+         date != "Date",
+         description != "Description") %>% 
+  mutate(keyword = "gaza")
+```
+
+```{r}
+joining <- full_join(tidy_pna, tidy_gna)
+all_data <- full_join(joining, tidy_ina)
+```
+

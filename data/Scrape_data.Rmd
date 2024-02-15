@@ -1,0 +1,139 @@
+```{r load-packages, message = FALSE}
+# install.packages("tidyverse")
+# install.packages("skimr")
+# install.packages("robotstxt")
+# install.packages("rvest")
+# install.packages("stringr")
+library(tidyverse) 
+library(skimr)
+library(robotstxt)
+library(rvest)
+library(stringr)
+library(glue)
+```
+
+```{r}
+root <- "https://www.google.com/search?q=palestine&tbm=nws&start="
+numbers <- seq(from = 0, to = 720, by = 10)
+urls <- glue("{root}{numbers}")
+urls
+```
+
+```{r}
+root1 <- "=IMPORTFROMWEB(a"
+root2 <- ",b1)"
+number <- seq(from = 2, to = 74, by = 1)
+functions <- glue("{root1}{number}{root2}")
+
+# Create a vector with empty strings interspersed between non-empty strings
+functions_with_blanks <- c(unlist(lapply(functions, function(x) c(x, rep("NA", 10)))))
+
+# Create the data frame
+df <- data.frame(Function_Call = functions_with_blanks)
+
+write.csv(df, "functions_data.csv", row.names = FALSE)
+```
+
+```{r}
+root1 <- "=IMPORTFROMWEB(a"
+root2 <- ",c1)"
+number <- seq(from = 2, to = 74, by = 1)
+functions <- glue("{root1}{number}{root2}")
+
+# Create a vector with empty strings interspersed between non-empty strings
+functions_with_blanks2 <- c(unlist(lapply(functions, function(x) c(x, rep("NA", 10)))))
+
+# Create the data frame
+df <- data.frame(Function_Call = functions_with_blanks2)
+
+write.csv(df, "functions_data2.csv", row.names = FALSE)
+```
+
+```{r}
+root1 <- "=IMPORTFROMWEB(a"
+root2 <- ",d1)"
+number <- seq(from = 2, to = 74, by = 1)
+functions <- glue("{root1}{number}{root2}")
+
+# Create a vector with empty strings interspersed between non-empty strings
+functions_with_blanks3 <- c(unlist(lapply(functions, function(x) c(x, rep("NA", 10)))))
+
+# Create the data frame
+df <- data.frame(Function_Call = functions_with_blanks3)
+
+write.csv(df, "functions_data3.csv", row.names = FALSE)
+```
+
+```{r}
+root1 <- "=IMPORTFROMWEB(a"
+root2 <- ",e1)"
+number <- seq(from = 2, to = 74, by = 1)
+functions <- glue("{root1}{number}{root2}")
+
+# Create a vector with empty strings interspersed between non-empty strings
+functions_with_blanks4 <- c(unlist(lapply(functions, function(x) c(x, rep("NA", 10)))))
+
+# Create the data frame
+df <- data.frame(Function_Call = functions_with_blanks4)
+
+write.csv(df, "functions_data4.csv", row.names = FALSE)
+```
+
+```{r}
+library(glue)
+
+root1 <- "=IMPORTFROMWEB(a"
+root2 <- ",b1)"
+number <- seq(from = 2, to = 74, by = 1)
+functions <- glue("{root1}{number}{root2}")
+
+# Create a vector with empty strings interspersed between non-empty strings
+functions_with_blanks <- c(unlist(lapply(functions, function(x) c(x, rep(NA, 10)))))
+
+# Create a vector with NA values for the first column
+na_values <- rep(NA, length(functions_with_blanks))
+
+# Create the data frame with two columns
+df2 <- data.frame(Extra_Variable = na_values, Function_Call = functions_with_blanks)
+```
+
+
+```{r}
+titles <- page %>%
+  html_elements('.SoAPf') %>% 
+  html_element('.MBeuO') %>%
+  html_text() %>%
+  str_squish()
+```
+
+titles <- page %>%
+  html_elements('SoaBEf') %>% 
+  html_element('n0jPhd ynAwRc MBeuO nDgy9d') %>%
+  html_text() %>%
+  str_squish()
+
+# scrape links -----------------------------------------------------------------
+
+links <- page %>%
+  html_elements(".iteminfo") %>%
+  html_element("h3 a") %>%
+  html_attr("href") %>%
+  str_replace("\\.", "https://collections.ed.ac.uk/art")
+
+# scrape artists ---------------------------------------------------------------
+
+artists <- page %>%
+  html_elements(".iteminfo") %>% 
+  html_element(".artist") %>%
+  html_text() %>%
+  str_squish()
+
+# put together in a data frame -------------------------------------------------
+
+first_ten <- tibble(
+  title = titles,
+  artist = artists,
+  link = links
+)
+```
+
