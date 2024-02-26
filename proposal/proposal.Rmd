@@ -83,6 +83,10 @@ joining <- full_join(tidy_pna, tidy_gna)
 all_data <- full_join(joining, tidy_ina)
 ```
 
+```{r}
+glimpse(all_data)
+```
+
 
 ```{r most_common_articles_in_each_dataset}
 tidy_pna %>%
