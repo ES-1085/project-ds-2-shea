@@ -23,6 +23,7 @@ tidy_pna <- Palestine_news_articles %>%
          journal != "Journal",
          date != "Date",
          description != "Description") %>% 
+  filter(!str_starts(journal, "#")) %>% 
   mutate(keyword = "palestine")
 ```
 
@@ -38,6 +39,7 @@ tidy_ina <- Israel_news_articles %>%
          journal != "Journal",
          date != "Date",
          description != "Description") %>% 
+  filter(!str_starts(journal, "#")) %>% 
   mutate(keyword = "israel")
 ```
 
@@ -53,11 +55,42 @@ tidy_gna <- Gaza_news_articles %>%
          journal != "Journal",
          date != "Date",
          description != "Description") %>% 
+  filter(!str_starts(journal, "#")) %>% 
   mutate(keyword = "gaza")
 ```
 
 ```{r}
 joining <- full_join(tidy_pna, tidy_gna)
 all_data <- full_join(joining, tidy_ina)
+```
+
+
+```{r}
+tidy_pna %>%
+  count(journal) %>%
+  top_n(10, n) %>%
+  ggplot(aes(x = reorder(journal, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Journal", y = "Frequency") +
+  theme_minimal()
+
+tidy_ina %>%
+  count(journal) %>%
+  top_n(10, n) %>%
+  ggplot(aes(x = reorder(journal, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Journal", y = "Frequency") +
+  theme_minimal()
+
+tidy_gna %>%
+  count(journal) %>%
+  top_n(10, n) %>%
+  ggplot(aes(x = reorder(journal, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Journal", y = "Frequency") +
+  theme_minimal()
 ```
 
