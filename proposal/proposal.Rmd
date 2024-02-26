@@ -17,6 +17,102 @@ News outlets across the USA as well as many other countries of the world are por
 
 I will be web scraping data off of Google news, Google search, and other news platforms. I will be scraping the article titles, names of the journal, and dates of release. 
 
+```{r load-packages, message = FALSE}
+library(tidyverse)
+library(broom)
+library(readxl)
+```
+
+```{r read_in_data}
+Palestine_news_articles <- read_xlsx("../data/Palestine_news_articles.xlsx")
+Israel_news_articles <- read_xlsx("../data/israel_news_articles.xlsx")
+Gaza_news_articles <- read_xlsx("../data/gaza_news_articles.xlsx")
+```
+
+
+```{r palestine}
+tidy_pna <- Palestine_news_articles %>% 
+  select("...2", "...3", "...4", "...5") %>% 
+  rename("title" = "...2",
+         "journal" = "...3",
+         "date" = "...4",
+         "description" = "...5") %>% 
+  filter(!is.na(title)) %>% 
+  filter(title != "Title",
+         journal != "Journal",
+         date != "Date",
+         description != "Description") %>% 
+  filter(!str_starts(journal, "#")) %>% 
+  mutate(keyword = "palestine")
+```
+
+```{r israel}
+tidy_ina <- Israel_news_articles %>% 
+  select("...2", "...3", "...4", "...5") %>% 
+  rename("title" = "...2",
+         "journal" = "...3",
+         "date" = "...4",
+         "description" = "...5") %>% 
+  filter(!is.na(title)) %>% 
+  filter(title != "Title",
+         journal != "Journal",
+         date != "Date",
+         description != "Description") %>% 
+  filter(!str_starts(journal, "#")) %>% 
+  mutate(keyword = "israel")
+```
+
+```{r gaza}
+tidy_gna <- Gaza_news_articles %>% 
+  select("...2", "...3", "...4", "...5") %>% 
+  rename("title" = "...2",
+         "journal" = "...3",
+         "date" = "...4",
+         "description" = "...5") %>% 
+  filter(!is.na(title)) %>% 
+  filter(title != "Title",
+         journal != "Journal",
+         date != "Date",
+         description != "Description") %>% 
+  filter(!str_starts(journal, "#")) %>% 
+  mutate(keyword = "gaza")
+```
+
+```{r joining}
+joining <- full_join(tidy_pna, tidy_gna)
+all_data <- full_join(joining, tidy_ina)
+```
+
+
+```{r most_common_articles_in_each_dataset}
+tidy_pna %>%
+  count(journal) %>%
+  top_n(10, n) %>%
+  ggplot(aes(x = reorder(journal, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Journal", y = "Frequency") +
+  theme_minimal()
+
+tidy_ina %>%
+  count(journal) %>%
+  top_n(10, n) %>%
+  ggplot(aes(x = reorder(journal, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Journal", y = "Frequency") +
+  theme_minimal()
+
+tidy_gna %>%
+  count(journal) %>%
+  top_n(10, n) %>%
+  ggplot(aes(x = reorder(journal, n), y = n)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Journal", y = "Frequency") +
+  theme_minimal()
+```
+
 ## 3. Ethics review
 
 I am not 100% percent sure whether or not scrapping data off of Google search is fully legal. However, all of this information is publically accessible, and I do not intend to do anything formal with the data. Rather, this work will only be for the final project for this class and my own curiosity. Therefore, I do not see anything ethically wrong with doing this project.
