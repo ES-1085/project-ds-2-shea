@@ -2,12 +2,17 @@
 library(tidyverse)
 library(broom)
 library(readxl)
+library(tidytext)
+library(dplyr)
+library(tm)
+library(SnowballC)
 ```
 
 ```{r read_in_data}
 Palestine_news_articles <- read_xlsx("../data/Palestine_news_articles.xlsx")
 Israel_news_articles <- read_xlsx("../data/israel_news_articles.xlsx")
 Gaza_news_articles <- read_xlsx("../data/gaza_news_articles.xlsx")
+chat_gpt_article_headlines <- read_xlsx("../data/chat_gpt_data (1).xlsx")
 ```
 
 
@@ -24,7 +29,8 @@ tidy_pna <- Palestine_news_articles %>%
          date != "Date",
          description != "Description") %>% 
   filter(!str_starts(journal, "#")) %>% 
-  mutate(keyword = "palestine")
+  mutate(keyword = "palestine") %>% 
+  distinct()
 ```
 
 ```{r}
@@ -40,7 +46,8 @@ tidy_ina <- Israel_news_articles %>%
          date != "Date",
          description != "Description") %>% 
   filter(!str_starts(journal, "#")) %>% 
-  mutate(keyword = "israel")
+  mutate(keyword = "israel") %>% 
+  distinct()
 ```
 
 ```{r}
@@ -56,14 +63,14 @@ tidy_gna <- Gaza_news_articles %>%
          date != "Date",
          description != "Description") %>% 
   filter(!str_starts(journal, "#")) %>% 
-  mutate(keyword = "gaza")
+  mutate(keyword = "gaza") %>% 
+  distinct()
 ```
 
 ```{r}
-joining <- full_join(tidy_pna, tidy_gna)
-all_data <- full_join(joining, tidy_ina)
+pidf <- full_join(tidy_pna, tidy_ina)
+all_data <- full_join(pidf, tidy_gna)
 ```
-
 
 ```{r}
 tidy_pna %>%
@@ -94,3 +101,112 @@ tidy_gna %>%
   theme_minimal()
 ```
 
+
+```{r}
+pidf %>%
+  group_by(title, journal, description) %>%
+  summarize(count_of_string = n()) #%>% 
+  # mutate(count_of_string = n) %>%
+  #mutate(keyword = if_else(count_of_string == 1, keyword, "Both"))
+```
+
+```{r}
+inner_join_df <- tidy_pna %>% 
+  inner_join(tidy_ina, by = c("title", "journal", "description")) %>% 
+  mutate(keyword = "Both") %>% 
+  select(title, journal, description, keyword)
+```
+
+```{r}
+new_data <- left_join(all_data, inner_join_df, by = c("title", "journal", "description"))
+
+  colnames(new_data)[5] ="keyword"
+  colnames(new_data)[6] ="in_both"
+  
+new_data <- new_data %>% 
+  distinct() %>% 
+  mutate(in_both = if_else(in_both == "Both", T, F))
+```
+
+```{r}
+sentiments <- get_sentiments("bing")
+stop_words <- get_stopwords()
+
+new_data <- new_data %>%
+  mutate(Title = title) %>%
+  unnest_tokens(word, title) %>%
+  anti_join(stop_words) 
+```
+
+```{r}
+new_data %>%
+    count(word, sort = TRUE) %>%
+    slice_max(n, n = 20) %>%
+    ggplot(aes(n, fct_reorder(word, n))) +
+    geom_col()
+
+# data$word <- wordStem(data$word)
+```
+
+```{r}
+new_data %>% 
+  inner_join(sentiments) %>% 
+  group_by(sentiment) %>% 
+  filter(in_both == F) %>% 
+  filter(keyword == "palestine") %>% 
+  count(sentiment, word, sort = T) %>% 
+  filter(sentiment == "positive")
+
+new_data %>% 
+  inner_join(sentiments) %>% 
+  group_by(sentiment) %>% 
+  filter(in_both == F) %>% 
+  filter(keyword == "israel") %>% 
+  count(sentiment, word, sort = T) %>% 
+  filter(sentiment == "positive")
+```
+
+```{r}
+all_data %>% 
+  unnest_tokens(word, title) %>%
+  anti_join(stop_words) %>% 
+  group_by(journal) %>% 
+  count(word, sort = TRUE) %>% 
+  mutate(total_words = sum(n)) %>% 
+  mutate(word_percentage = n/total_words) %>% 
+  #arrange(desc(word_percentage)) %>% 
+  mutate(weighted_percentage = word_percentage * log(total_words)) %>%  # Applying weighting to 
+  #arrange(desc(weighted_percentage)) %>% 
+  arrange(desc(word_percentage)) %>% 
+  #filter(!(word %in% c("palestine", "israel", "gaza")))
+  filter(word == "hamas") %>% 
+  filter(n >= 10)
+  #unnest_tokens(word, description)
+```
+
+
+```{r}
+gpt <- chat_gpt_article_headlines
+
+pgpt <- chat_gpt_article_headlines %>% 
+  select(Palestine_headings)
+
+igpt <- chat_gpt_article_headlines %>% 
+  select(Israel_headings)
+```
+
+```{r}
+pgpt %>% 
+  unnest_tokens(word, Palestine_headings) %>% 
+  anti_join(stop_words) %>% 
+  inner_join(sentiments) %>% 
+  group_by(sentiment) %>% 
+  count(sentiment, word, sort = T)
+
+igpt %>% 
+  unnest_tokens(word, Israel_headings) %>% 
+  anti_join(stop_words) %>% 
+  inner_join(sentiments) %>% 
+  group_by(sentiment) %>% 
+  count(sentiment, word, sort = T)
+```
