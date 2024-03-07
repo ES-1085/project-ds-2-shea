@@ -6,6 +6,7 @@ library(tidytext)
 library(dplyr)
 library(tm)
 library(SnowballC)
+library(lubridate)
 ```
 
 ```{r read_in_data}
@@ -118,12 +119,13 @@ inner_join_df <- tidy_pna %>%
 ```
 
 ```{r}
-new_data <- left_join(all_data, inner_join_df, by = c("title", "journal", "description"))
+tokenized_df <- left_join(pidf, inner_join_df, by = c("title", "journal", "description"))
 
-  colnames(new_data)[5] ="keyword"
-  colnames(new_data)[6] ="in_both"
+  colnames(tokenized_df)[5] ="keyword"
+  colnames(tokenized_df)[6] ="in_both"
+  colnames(tokenized_df)[3] ="Description"
   
-new_data <- new_data %>% 
+tokenized_df <- tokenized_df %>% 
   distinct() %>% 
   mutate(in_both = if_else(in_both == "Both", T, F))
 ```
@@ -132,14 +134,29 @@ new_data <- new_data %>%
 sentiments <- get_sentiments("bing")
 stop_words <- get_stopwords()
 
-new_data <- new_data %>%
-  mutate(Title = title) %>%
-  unnest_tokens(word, title) %>%
-  anti_join(stop_words) 
+# tokenized_df <- tokenized_df %>%
+#   mutate(Title = title) %>%
+#   unnest_tokens(word, title) %>%
+#   anti_join(stop_words) 
+
+# tokenized_df2 <- tokenized_df %>%
+#   mutate(Description = description) %>%
+#   unnest_tokens(word, description) %>%
+#   anti_join(stop_words) 
+
+tokenized_df <- tokenized_df %>% 
+  mutate(title_or_description = "title")
+
+tokenized_df2 <- tokenized_df2 %>% 
+  mutate(title_or_description = "description")
+
+All_tokens <- tokenized_df %>% 
+  full_join(tokenized_df2, by = c("journal", "date", "keyword", "in_both", "Title", "word", "Description", "title_or_description"))
+  
 ```
 
 ```{r}
-new_data %>%
+tokenized_df %>%
     count(word, sort = TRUE) %>%
     slice_max(n, n = 20) %>%
     ggplot(aes(n, fct_reorder(word, n))) +
@@ -149,7 +166,7 @@ new_data %>%
 ```
 
 ```{r}
-new_data %>% 
+tokenized_df %>% 
   inner_join(sentiments) %>% 
   group_by(sentiment) %>% 
   filter(in_both == F) %>% 
@@ -157,7 +174,7 @@ new_data %>%
   count(sentiment, word, sort = T) %>% 
   filter(sentiment == "positive")
 
-new_data %>% 
+tokenized_df %>% 
   inner_join(sentiments) %>% 
   group_by(sentiment) %>% 
   filter(in_both == F) %>% 
@@ -183,7 +200,65 @@ all_data %>%
   filter(n >= 10)
   #unnest_tokens(word, description)
 ```
+```{r}
+All_tokens %>% 
+  group_by(word) %>%  
+  summarize(word_count = n(), journal, date, Description, keyword, in_both, Title, word, title_or_description) # %>% 
+#   mutate(total_words = sum(n)) %>% 
+#   mutate(word_percentage = n/total_words) %>% 
+#   mutate(weighted_percentage = word_percentage * log(total_words)) %>%
+#   arrange(desc(word_percentage)) %>% 
+#   group_by(word)
+```
 
+```{r}
+tokenized_df %>% 
+  group_by(keyword) %>% 
+  count(word, sort = TRUE) %>% 
+  filter(word %in% c("palestine", "israel")) %>% 
+  ggplot(aes(x = keyword, y = n, fill = word)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  labs(title = "Words Frequency in Title")
+
+tokenized_df2 %>% 
+  group_by(keyword) %>% 
+  count(word, sort = TRUE) %>% 
+  filter(word %in% c("palestine", "israel")) %>% 
+  ggplot(aes(x = keyword, y = n, fill = word)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  labs(title = "Words Frequency in Description")
+```
+
+
+
+```{r}
+All_tokens %>% 
+  group_by(keyword, title_or_description) %>% 
+  count(word, sort = TRUE) %>% 
+  filter(word %in% c("palestine", "israel")) %>% 
+  ggplot(aes(x = keyword, y = n, fill = word)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  labs(title = 'Frequency of Words "Israel" and "Palestine"') +
+  xlab("News Article Subject") +
+  ylab("Frequency") +
+  facet_wrap(~title_or_description, nrow = 2)
+```
+```{r}
+All_tokens %>% 
+  group_by(keyword, title_or_description) %>% 
+  count(word, sort = TRUE) %>% 
+  filter(word %in% c("gaza", "west", "bank")) %>% 
+  ggplot(aes(x = keyword, y = n, fill = word)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  labs(title = 'Frequency of Words "Israel" and "Palestine"') +
+  xlab("News Article Subject") +
+  ylab("Frequency") +
+  facet_wrap(~title_or_description, nrow = 2)
+```
 
 ```{r}
 gpt <- chat_gpt_article_headlines
@@ -210,3 +285,51 @@ igpt %>%
   group_by(sentiment) %>% 
   count(sentiment, word, sort = T)
 ```
+```{r}
+distinct_igpt <- igpt %>% 
+  distinct()
+
+distinct_pgpt <- pgpt %>% 
+  distinct()
+```
+
+```{r}
+palestine_million <- abcnews_date_text_2_1_ %>% 
+  filter(str_detect(headline_text, fixed("palestine", ignore_case = T)) |
+           str_detect(headline_text, fixed("palestinian", ignore_case = T)) |
+           str_detect(headline_text, fixed("gaza", ignore_case = T)) |
+           str_detect(headline_text, fixed("west bank", ignore_case = T))) %>% 
+  mutate(keyword = "palestine")
+
+israel_million <- abcnews_date_text_2_1_ %>% 
+  filter(str_detect(headline_text, fixed("israel", ignore_case = T))) %>% 
+  mutate(keyword = "palestine")
+           #str_detect(headline_text, fixed("tel aviv", ignore_case = T)))
+
+million_df <- full_join(palestine_million, israel_million, by = c("publish_date", "headline_text", "keyword"))
+```
+
+```{r}
+# news_data <- news_data %>% 
+#   rename(title = headline)
+
+# million_df <- million_df %>%
+#   rename(title = headline_text,
+#          date = publish_date)
+# 
+# million_df$date <- ymd(million_df$date)
+# 
+# million_df$date <- format(million_df$date, "%d-%m-%Y")
+```
+
+```{r}
+joining <- full_join(news_data, million_df, by = c("title", "date"))
+
+
+
+all_real_data <- pidf %>% 
+  #select(!date) %>% 
+  full_join(joining, by = c("title", "description", "keyword")) %>% 
+  rename(date = date.y, untidy_date = date.x) 
+```
+
