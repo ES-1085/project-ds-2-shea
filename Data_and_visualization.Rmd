@@ -163,7 +163,7 @@ tokenized_df %>%
   count(word, sort = T)
 ```
 
-```{r}
+```{r weighted percentage}
 pidf %>% 
   unnest_tokens(word, title) %>%
   anti_join(stop_words) %>% 
@@ -180,7 +180,7 @@ pidf %>%
   filter(n >= 100)
   #unnest_tokens(word, description)
 ```
-```{r}
+```{r top 5 in top 5}
 # All_tokens$word <- str_replace_all(All_tokens$word, "­", "")
 
 All_tokens %>%
@@ -204,7 +204,7 @@ All_tokens %>%
   xlab("Relative Word Percentages") +
   ylab("")
 ```
-```{r}
+```{r times of israel vs al javeera}
 All_tokens %>%
   mutate(word = case_when(word %in% c("palestinian", "palestinians") ~"palestine",
                           word %in% c("israeli", "israelis") ~"israel",
@@ -231,7 +231,7 @@ All_tokens %>%
   ylab("")
 ```
 
-```{r}
+```{r palestine israel word compairison}
 All_tokens %>% 
   group_by(keyword) %>% 
   count(word, sort = TRUE) %>% 
@@ -244,7 +244,7 @@ All_tokens %>%
   ylab("Frequency") #+
   #facet_wrap(~title_or_description, nrow = 2)
 ```
-```{r}
+```{r gaza west bank word compairison}
 All_tokens %>% 
   group_by(keyword, title_or_description) %>% 
   count(word, sort = TRUE) %>% 
@@ -258,7 +258,7 @@ All_tokens %>%
   facet_wrap(~title_or_description, nrow = 2)
 ```
 
-```{r}
+```{r chat gpt data that I didn't end up using}
 gpt <- chat_gpt_article_headlines
 
 pgpt <- chat_gpt_article_headlines %>% 
@@ -268,7 +268,7 @@ igpt <- chat_gpt_article_headlines %>%
   select(Israel_headings)
 ```
 
-```{r}
+```{r tidying gpt}
 pgpt %>% 
   unnest_tokens(word, Palestine_headings) %>% 
   anti_join(stop_words) %>% 
@@ -283,7 +283,7 @@ igpt %>%
   group_by(sentiment) %>% 
   count(sentiment, word, sort = T)
 ```
-```{r}
+```{r distinct gpt}
 distinct_igpt <- igpt %>% 
   distinct()
 
@@ -291,7 +291,7 @@ distinct_pgpt <- pgpt %>%
   distinct()
 ```
 
-```{r}
+```{r filtering million news}
 palestine_million <- million_news %>% 
   filter(str_detect(headline_text, fixed("palestine", ignore_case = T)) |
            str_detect(headline_text, fixed("palestinian", ignore_case = T)) |
@@ -307,7 +307,7 @@ israel_million <- million_news %>%
 million_df <- full_join(palestine_million, israel_million, by = c("publish_date", "headline_text", "keyword"))
 ```
 
-```{r}
+```{r adding additional data}
 additional_news_data <- additional_news_data %>%
   rename(title = headline) %>% 
   mutate(source = "additional_news_data")
@@ -324,7 +324,7 @@ million_df$date <- format(million_df$date, "%d-%m-%Y")
 joining <- full_join(additional_news_data, million_df, by = c("title", "date", "source"))
 ```
 
-```{r}
+```{r merging all real data}
 pidf <- pidf %>% 
   mutate(source = "my_scaped_data")
 
@@ -357,7 +357,7 @@ all_real_data_tokens <- tokenized_df3 %>%
   full_join(tokenized_df4)
 ```
 
-```{r}
+```{r most common words coloured by keyword}
 all_real_data_tokens %>%
   filter(!is.na(word)) %>% 
   filter(!is.na(keyword)) %>% 
@@ -380,7 +380,7 @@ all_real_data_tokens %>%
     geom_col()
 ```
 
-```{r}
+```{r million news distibution}
 all_real_data <- all_real_data %>% 
   mutate(year = str_sub(date, 7, 10)) #%>% 
   #mutate(year = as.numeric(year))
@@ -400,7 +400,7 @@ all_real_data_tokens %>%
   xlab("Year") +
   ylab("Count")
 ```
-```{r}
+```{r word palestine use over time in million news}
 all_real_data_tokens %>% 
   group_by(year) %>% 
   filter(source == "million_news") %>% 
@@ -418,7 +418,7 @@ all_real_data_tokens %>%
   xlab("Year")+
   ylab("Word Percentage")
 ```
-```{r}
+```{r word peace use over time}
 all_real_data_tokens %>% 
   group_by(year) %>% 
   #filter(source == "million_news") %>% 
@@ -449,10 +449,9 @@ No American president ever came into office with a better understanding of the t
 
 Trump was elected in 2017
 
-
 The 2013–2014 Israeli–Palestinian peace talks were part of the Israeli–Palestinian peace process. Direct negotiations between Israel and the Palestinians began on 29 July 2013 following an attempt by United States Secretary of State John Kerry to restart the peace process.
 
-```{r}
+```{r unused/unfinished visualization}
 all_real_data_tokens %>% 
   group_by(year) %>% 
   filter(!is.na(year), !is.na(word)) %>% 
@@ -482,7 +481,7 @@ all_real_data_tokens %>%
   scale_x_continuous(breaks = seq(2003, 2023, by = 1))
 ```
 
-```{r}
+```{r description title relationship}
 All_tokens %>% 
   filter(title_or_description == "title")
 All_tokens %>% 
@@ -507,7 +506,7 @@ All_tokens %>%
 All_tokens$word <- str_replace_all(All_tokens$word, "­", "")
 ```
 
-```{r}
+```{r model description title relationship}
 All_tokens %>%
   filter(!is.na(word), !is.na(keyword), !is.na(title_or_description)) %>% 
   group_by(title_or_description) %>%
@@ -570,7 +569,7 @@ plotly_plot <- All_tokens %>%
 saveWidget(ggplotly(plotly_plot), file = "plotly_plot.html")
 ```
 
-```{r}
+```{r title description plotly}
 PI_plotly <- All_tokens %>%
   filter(!is.na(word), !is.na(keyword), !is.na(title_or_description)) %>% 
   group_by(keyword) %>%
@@ -625,17 +624,12 @@ saveWidget(ggplotly(PI_plotly), file = "PI_plotly.html")
   mutate(year = if_else(is.na(year), fixed_date, year))
 ```
 
-```{r}
+```{r mutate year var}
 additional_news_data <- additional_news_data %>% 
   mutate(year = str_sub(date, 7, 10))
 ```
 
-```{r}
-all_real_data_tokens %>% 
-  filter(is.na(keyword))
-```
-
-```{r}
+```{r remove non character spaces}
 all_real_data_tokens %>% 
   filter(year == 2023) %>% 
   mutate(word = str_squish(word)) %>% 
@@ -646,7 +640,7 @@ all_real_data_tokens %>%
   all_real_data_tokens$word <- str_replace_all(all_real_data_tokens$word, "­", "")
 ```
 
-```{r}
+```{r perecntage word palestine in all data over time}
 all_real_data_tokens %>%
   count(year) %>%
   ggplot(aes(x = year, y = n)) +
@@ -672,46 +666,6 @@ all_real_data_tokens %>%
   geom_smooth(se = F)+
   scale_x_continuous(breaks = seq(2000, 2024, by = 2)) +
   labs(title = 'Frequency of the Word "Palestine" Based on the Subject of the News Article Over Time') +
-  xlab("Year") +
-  ylab('Percentage of Word "Palestine"')
-
-all_real_data_tokens %>% 
-  filter(source == "my_scaped_data") %>% 
-  filter(!is.na(keyword)) %>% 
-  group_by(year, keyword) %>% 
-  filter(!is.na(year), !is.na(word)) %>% 
-  count(word, sort = TRUE) %>% 
-  mutate(total_words = sum(n)) %>% 
-  mutate(word_percentage = n/total_words) %>% 
-  mutate(word_percentage = n/total_words) %>% 
-  filter(word %in% c("palestine")) %>% 
-  group_by(word) %>% 
-  mutate(Article_Subject = keyword) %>% 
-  ggplot(aes(x = year, y = word_percentage, colour = Article_Subject)) +
-  geom_point()+
-  #geom_smooth(se = F)+
-  scale_x_continuous(breaks = seq(2000, 2024, by = 2)) +
-  labs(title = 'Frequency of the Word "Palestine" Based on the Subject of the News Article Over Time') +
-  xlab("Year") +
-  ylab('Percentage of Word "Palestine"')
-```
-
-```{r}
-all_real_data_tokens %>% 
-  filter(!is.na(keyword)) %>% 
-  group_by(year) %>% 
-  filter(!is.na(year), !is.na(word)) %>% 
-  count(word, sort = TRUE) %>% 
-  mutate(total_words = sum(n)) %>% 
-  mutate(word_percentage = n/total_words) %>% 
-  mutate(word_percentage = n/total_words) %>% 
-  filter(word %in% c("palestine")) %>% 
-  group_by(word) %>% 
-  ggplot(aes(x = year, y = word_percentage)) +
-  #geom_point()+
-  geom_line()+
-  scale_x_continuous(breaks = seq(2000, 2024, by = 2)) +
-  labs(title = 'Frequency of the Word "Palestine" in Based on the Subject of the News Article Over Time') +
   xlab("Year") +
   ylab('Percentage of Word "Palestine"')
 ```
