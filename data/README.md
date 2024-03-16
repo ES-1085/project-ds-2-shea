@@ -7,7 +7,26 @@ using the following format.
 
 ## name of data file
 
-- `variable1`: Description of variable 1
-- `variable2`: Description of variable 2
-- `variable3`: Description of variable 3
-- ...
+A Million News Headlines:
+file: abcnews-date-text 2 (1).csv
+
+- `publish_date`: Date news article was released
+- `headline_text`: New article title/headline
+
+Israel-Palestine Conflict News Dataset:
+file: news_data.csv
+
+- `headline`: New article title/headline
+- `description`: News article short description
+- `date`: Date news article was released
+
+My scraped data
+file names: Palestine_news_articles.xlsx,
+            israel_news_articles.xlsx
+            gaza_news_articles.xlsx
+            
+- ...2 (title): New article title/headline
+- ...3 (journal): News article's journal
+- ...4 (date): Date news article was released
+- ...5 (description): News article short description
+
